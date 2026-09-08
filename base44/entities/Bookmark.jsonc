@@ -1,0 +1,25 @@
+{
+  "name": "Bookmark",
+  "type": "object",
+  "properties": {
+    "source_text": {
+      "type": "string"
+    },
+    "translated_text": {
+      "type": "string"
+    },
+    "source_language": {
+      "type": "string"
+    },
+    "target_language": {
+      "type": "string"
+    },
+    "cultural_notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "source_text",
+    "translated_text"
+  ]
+}

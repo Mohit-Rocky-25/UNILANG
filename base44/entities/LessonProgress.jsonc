@@ -1,0 +1,50 @@
+{
+  "name": "LessonProgress",
+  "type": "object",
+  "properties": {
+    "language": {
+      "type": "string"
+    },
+    "lesson_id": {
+      "type": "string"
+    },
+    "lesson_title": {
+      "type": "string"
+    },
+    "level": {
+      "type": "string",
+      "enum": [
+        "beginner",
+        "intermediate",
+        "advanced",
+        "fluent"
+      ]
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "locked",
+        "available",
+        "in_progress",
+        "completed"
+      ],
+      "default": "available"
+    },
+    "score": {
+      "type": "number",
+      "default": 0
+    },
+    "xp_earned": {
+      "type": "number",
+      "default": 0
+    },
+    "completed_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "language",
+    "lesson_id"
+  ]
+}

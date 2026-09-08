@@ -1,0 +1,58 @@
+{
+  "name": "UserProfile",
+  "type": "object",
+  "properties": {
+    "native_language": {
+      "type": "string",
+      "description": "User's native language code"
+    },
+    "target_languages": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Languages the user wants to learn"
+    },
+    "interests": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "User interests like Travel, Business, Culture"
+    },
+    "level": {
+      "type": "string",
+      "enum": [
+        "beginner",
+        "intermediate",
+        "advanced",
+        "fluent"
+      ],
+      "default": "beginner"
+    },
+    "xp_points": {
+      "type": "number",
+      "default": 0
+    },
+    "streak_count": {
+      "type": "number",
+      "default": 0
+    },
+    "onboarding_complete": {
+      "type": "boolean",
+      "default": false
+    },
+    "badges": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Achievement badges earned"
+    },
+    "last_activity_date": {
+      "type": "string",
+      "format": "date"
+    }
+  },
+  "required": []
+}
