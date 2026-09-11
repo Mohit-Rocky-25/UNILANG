@@ -1,14 +1,39 @@
-const db = globalThis.__B44_DB__ || { auth:{ isAuthenticated: async()=>false, me: async()=>null }, entities:new Proxy({}, { get:()=>({ filter:async()=>[], get:async()=>null, create:async()=>({}), update:async()=>({}), delete:async()=>({}) }) }), integrations:{ Core:{ UploadFile:async()=>({ file_url:'' }) } } };
-
 import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeftRight, Copy, Bookmark, Loader2, Sparkles, ChevronDown, ChevronUp } from "lucide-react";
+import { motion } from "framer-motion";
+import { ArrowLeftRight, Copy, Bookmark, Loader2, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { LANGUAGES } from "@/lib/languageData";
-
 import { toast } from "sonner";
+
+// Lingva Translate API — free, no API key required
+const LINGVA_INSTANCES = [
+  "https://lingva.ml",
+  "https://lingva.thedaviddelta.com",
+  "https://translate.plausibility.cloud",
+];
+
+async function translateWithLingva(source, target, text) {
+  const encoded = encodeURIComponent(text);
+  let lastError = null;
+
+  for (const baseUrl of LINGVA_INSTANCES) {
+    try {
+      const res = await fetch(`${baseUrl}/api/v1/${source}/${target}/${encoded}`);
+      if (!res.ok) {
+        lastError = new Error(`HTTP ${res.status}`);
+        continue;
+      }
+      const data = await res.json();
+      if (data.translation) return data.translation;
+      lastError = new Error("Empty translation response");
+    } catch (err) {
+      lastError = err;
+    }
+  }
+  throw lastError || new Error("All translation instances failed");
+}
 
 export default function TranslateSection({ onBookmark }) {
   const [sourceText, setSourceText] = useState("");
@@ -17,64 +42,27 @@ export default function TranslateSection({ onBookmark }) {
   const [targetLang, setTargetLang] = useState("es");
   const [mode, setMode] = useState("idiomatic");
   const [loading, setLoading] = useState(false);
-  const [culturalNotes, setCulturalNotes] = useState(null);
-  const [showNotes, setShowNotes] = useState(false);
 
   const handleSwap = () => {
     setSourceLang(targetLang);
     setTargetLang(sourceLang);
     setSourceText(translatedText);
     setTranslatedText(sourceText);
-    setCulturalNotes(null);
   };
 
   const handleTranslate = async () => {
     if (!sourceText.trim()) return;
     setLoading(true);
-    setCulturalNotes(null);
-    const sLang = LANGUAGES.find(l => l.code === sourceLang)?.name || sourceLang;
-    const tLang = LANGUAGES.find(l => l.code === targetLang)?.name || targetLang;
-
-    const res = await db.integrations.Core.InvokeLLM({
-      prompt: `You are a professional ${sLang}-to-${tLang} translator. Translate the following text EXACTLY with ZERO added words, no conversational filler, no "here is the translation" or similar phrases.
-
-CRITICAL RULES:
-- NEVER add or remove meaning. Translate precisely.
-- NEVER include meta-commentary like "This means..." or "Literally..."
-- NEVER add your own opinions or interpretations.
-- If ${mode === "literal" ? "translate word-for-word preserving exact structure" : "use natural, culturally appropriate expressions"}.
-- Output ONLY the translation text.
-
-Text to translate: "${sourceText}"
-
-After translation, also provide structured cultural notes (separate from the translation):
-- Any connotation or meaning shifts between the two cultures
-- Regional variants that exist for this phrase
-- Cultural context that affects understanding`,
-      response_json_schema: {
-        type: "object",
-        properties: {
-          translation: { type: "string" },
-          cultural_notes: { type: "string" },
-          connotation_shifts: { type: "string" },
-          regional_variants: {
-            type: "array",
-            items: {
-              type: "object",
-              properties: {
-                region: { type: "string" },
-                variant: { type: "string" },
-                note: { type: "string" }
-              }
-            }
-          }
-        }
-      }
-    });
-
-    setTranslatedText(res.translation);
-    setCulturalNotes(res);
-    setLoading(false);
+    try {
+      const result = await translateWithLingva(sourceLang, targetLang, sourceText);
+      setTranslatedText(result);
+    } catch (err) {
+      console.error("Translation error:", err);
+      toast.error("Translation failed. Please try again.");
+      setTranslatedText("");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleCopy = () => {
@@ -88,7 +76,7 @@ After translation, also provide structured cultural notes (separate from the tra
       translated_text: translatedText,
       source_language: sourceLang,
       target_language: targetLang,
-      cultural_notes: culturalNotes?.cultural_notes || ""
+      cultural_notes: ""
     });
     toast.success("Saved to phrasebook!");
   };
@@ -201,59 +189,6 @@ After translation, also provide structured cultural notes (separate from the tra
           )}
         </div>
       </div>
-
-      {/* Cultural Notes */}
-      <AnimatePresence>
-        {culturalNotes && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: "auto" }}
-            exit={{ opacity: 0, height: 0 }}
-          >
-            <button
-              onClick={() => setShowNotes(!showNotes)}
-              className="w-full flex items-center justify-between p-4 bg-gradient-to-r from-purple-500/5 to-amber-500/5 border border-purple-500/10 rounded-2xl mb-2"
-            >
-              <span className="font-semibold text-sm">Cultural Notes & Context</span>
-              {showNotes ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-            </button>
-
-            {showNotes && (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                className="glass-card p-5 space-y-4"
-              >
-                {culturalNotes.cultural_notes && (
-                  <div>
-                    <h4 className="text-sm font-semibold text-purple-400 mb-1">Cultural Context</h4>
-                    <p className="text-sm text-muted-foreground">{culturalNotes.cultural_notes}</p>
-                  </div>
-                )}
-                {culturalNotes.connotation_shifts && (
-                  <div>
-                    <h4 className="text-sm font-semibold text-blue-400 mb-1">Connotation Shifts</h4>
-                    <p className="text-sm text-muted-foreground">{culturalNotes.connotation_shifts}</p>
-                  </div>
-                )}
-                {culturalNotes.regional_variants?.length > 0 && (
-                  <div>
-                    <h4 className="text-sm font-semibold text-amber-400 mb-2">Regional Variants</h4>
-                    <div className="space-y-2">
-                      {culturalNotes.regional_variants.map((v, i) => (
-                        <div key={i} className="bg-secondary/20 rounded-xl p-3 border border-white/[0.04]">
-                          <p className="text-sm font-medium">{v.region}: {v.variant}</p>
-                          {v.note && <p className="text-xs text-muted-foreground mt-1">{v.note}</p>}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </motion.div>
-            )}
-          </motion.div>
-        )}
-      </AnimatePresence>
     </motion.div>
   );
 }
