@@ -36,6 +36,47 @@ Unlike traditional language-learning applications that focus primarily on vocabu
 
 ---
 
+## ⚡ Quick Start & Development
+
+### 1. Local Zero-Dependency Setup (SQLite)
+The application is pre-configured with a zero-install SQLite database (`server/prisma/dev.db`) seeded with 20 languages, 30+ badges, quests, curricula, starter vocabulary, and the demo user.
+
+```powershell
+# In terminal 1: Launch Fastify API Gateway (Port 5000)
+npm run server:dev
+
+# In terminal 2: Launch Vite SPA Frontend (Port 5173)
+npm run dev
+```
+
+Visit **`http://localhost:5173`**. You can click **"Demo Access (1-Click)"** on the landing page or log in with:
+- **Email:** `demo@unilang.app`
+- **Password:** `demo1234`
+
+### 2. Optional Production Setup with Docker & PostgreSQL
+```powershell
+# Start PostgreSQL container
+docker compose up -d
+
+# Migrate and seed PostgreSQL
+cd server
+npx prisma db push --schema=prisma/schema.postgresql.prisma
+npm run seed
+```
+
+### 3. Running Verification & Test Suites
+```powershell
+# Run all backend, SRS, AI, phoneme & analytics tests (56 tests)
+npm run server:test
+
+# Run Vite production build check
+npm run build
+```
+
+Full API specifications are documented in [`docs/API.md`](./docs/API.md).
+
+---
+
 ## 🌐 About UniLang
 
 Language is more than vocabulary, grammar, and pronunciation. It is a way to understand people, traditions, perspectives, and cultures.

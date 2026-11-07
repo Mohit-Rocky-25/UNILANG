@@ -1,0 +1,16 @@
+{
+  "short_name": "UniLang",
+  "name": "UniLang — Unified Language & Culture Platform",
+  "icons": [
+    {
+      "src": "https://api.iconify.design/lucide:globe.svg",
+      "type": "image/svg+xml",
+      "sizes": "192x192 512x512"
+    }
+  ],
+  "start_url": "/home",
+  "background_color": "#090d16",
+  "theme_color": "#090d16",
+  "display": "standalone",
+  "orientation": "portrait"
+}
