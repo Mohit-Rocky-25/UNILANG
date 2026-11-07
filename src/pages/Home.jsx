@@ -11,6 +11,8 @@ import TranslateSection from "@/components/translate/TranslateSection";
 import CultureSection from "@/components/culture/CultureSection";
 import DashboardSection from "@/components/dashboard/DashboardSection";
 import VocabularySection from "@/components/vocabulary/VocabularySection";
+import ConversationPartner from "@/components/speak/ConversationPartner";
+import GrammarSection from "@/components/grammar/GrammarSection";
 
 export default function Home() {
   const navigate = useNavigate();
@@ -151,6 +153,28 @@ export default function Home() {
               transition={{ type: "spring", stiffness: 400, damping: 30 }}
             >
               <VocabularySection userProfile={profile} />
+            </motion.div>
+          )}
+          {activeTab === "speak" && (
+            <motion.div
+              key="speak"
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ type: "spring", stiffness: 400, damping: 30 }}
+            >
+              <ConversationPartner userProfile={profile} />
+            </motion.div>
+          )}
+          {activeTab === "grammar" && (
+            <motion.div
+              key="grammar"
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ type: "spring", stiffness: 400, damping: 30 }}
+            >
+              <GrammarSection userProfile={profile} />
             </motion.div>
           )}
           {activeTab === "translate" && (
