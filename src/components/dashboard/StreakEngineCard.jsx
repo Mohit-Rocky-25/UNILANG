@@ -96,3 +96,4 @@ export default function StreakEngineCard({ streak = 7, userProfile }) {
     </div>
   );
 }
+

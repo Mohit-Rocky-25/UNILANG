@@ -350,3 +350,4 @@ export default function CommunitySection({ userProfile, onXPGain }) {
     </motion.div>
   );
 }
+

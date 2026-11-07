@@ -362,3 +362,4 @@ model LibraryTag {
   @@unique([userId, tagName, itemType, itemId])
   @@map("library_tags")
 }
+

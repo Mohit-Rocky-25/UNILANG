@@ -13,3 +13,4 @@ TASK:
   "errors": [ { "type": "TENSE/GENDER_AGREEMENT/CASE/REGISTER", "culprit": "", "fix": "", "reason": "Linguistic rule explanation" } ],
   "conjugationReference": { "verb": "infinitive", "tense": "Present/Past", "fullTable": { } }
 }`;
+

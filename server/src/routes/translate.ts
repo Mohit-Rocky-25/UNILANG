@@ -42,3 +42,4 @@ export async function translateRoutes(fastify: FastifyInstance) {
     return reply.send(result);
   });
 }
+

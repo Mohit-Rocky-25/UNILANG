@@ -37,3 +37,4 @@ export function scorePronunciation(spokenText, targetText) {
     normTarget
   };
 }
+

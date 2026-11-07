@@ -106,3 +106,4 @@ export class LingvaTranslationProvider implements ITranslationProvider {
     return new MockTranslationProvider().translate(text, sourceLang, targetLang, options);
   }
 }
+

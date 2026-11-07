@@ -72,3 +72,4 @@ export const SCENARIOS = [
     targetVocab: ["dirección", "cuánto cuesta", "aeropuerto", "gracias"]
   }
 ];
+

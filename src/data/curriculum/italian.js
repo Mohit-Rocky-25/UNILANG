@@ -272,3 +272,4 @@ export const ITALIAN_CURRICULUM = {
     }
   }
 };
+

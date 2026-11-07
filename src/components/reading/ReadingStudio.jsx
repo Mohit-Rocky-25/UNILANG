@@ -654,3 +654,4 @@ export default function ReadingStudio({ userProfile, onXPGain }) {
     </motion.div>
   );
 }
+

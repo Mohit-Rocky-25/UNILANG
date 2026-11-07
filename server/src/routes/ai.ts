@@ -105,3 +105,4 @@ export async function aiRoutes(fastify: FastifyInstance) {
     return reply.send(analysis);
   });
 }
+

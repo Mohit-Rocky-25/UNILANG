@@ -232,3 +232,4 @@ export async function vocabularyRoutes(fastify: FastifyInstance) {
     });
   });
 }
+

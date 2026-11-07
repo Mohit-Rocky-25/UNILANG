@@ -49,3 +49,4 @@ export default function SpeakSection({ userProfile, onXPGain }) {
     </motion.div>
   );
 }
+

@@ -36,3 +36,4 @@ export async function requireAuth(req: FastifyRequest, reply: FastifyReply) {
 
   req.user = payload;
 }
+

@@ -17,3 +17,4 @@ OUTPUT FORMAT (Strict JSON):
   "correction": { "hasError": true/false, "userMistake": "exact erroneous phrase", "correctedPhrase": "corrected phrase", "explanation": "Clear, encouraging explanation in English." },
   "recommendedReplies": ["2-3 quick suggested replies"]
 }`;
+

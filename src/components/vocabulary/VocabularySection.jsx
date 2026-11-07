@@ -659,3 +659,4 @@ export default function VocabularySection({ userProfile, onWordSaved }) {
     </motion.div>
   );
 }
+

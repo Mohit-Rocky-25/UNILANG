@@ -188,3 +188,4 @@ Multi-provider translation with automatic failover (Lingva -> LibreTranslate -> 
     "provider": "lingva"
   }
   ```
+

@@ -74,3 +74,4 @@ export class OfflineSRSStore {
     localStorage.setItem(STORE_KEY_PENDING, JSON.stringify(failed));
   }
 }
+

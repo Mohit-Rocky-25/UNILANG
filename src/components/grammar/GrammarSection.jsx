@@ -396,3 +396,4 @@ export default function GrammarSection({ userProfile }) {
     </motion.div>
   );
 }
+

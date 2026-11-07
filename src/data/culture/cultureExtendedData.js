@@ -350,3 +350,4 @@ export const CULTURE_EXTENDED = {
 export function getCultureExtended(langCode) {
   return CULTURE_EXTENDED[langCode] || CULTURE_EXTENDED.es;
 }
+

@@ -25,3 +25,4 @@ export function centralErrorHandler(error: FastifyError, req: FastifyRequest, re
       : error.message
   });
 }
+

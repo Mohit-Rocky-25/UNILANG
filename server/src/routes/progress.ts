@@ -169,3 +169,4 @@ export async function progressRoutes(fastify: FastifyInstance) {
     return reply.send({ stats });
   });
 }
+

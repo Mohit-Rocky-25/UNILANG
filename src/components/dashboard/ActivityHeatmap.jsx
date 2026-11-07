@@ -113,3 +113,4 @@ export default function ActivityHeatmap({ userProfile }) {
     </div>
   );
 }
+
