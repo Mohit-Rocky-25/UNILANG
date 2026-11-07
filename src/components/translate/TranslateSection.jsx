@@ -6,6 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { LANGUAGES } from "@/lib/languageData";
 import { toast } from "sonner";
+import api from "@/api/client";
 
 // Lingva Translate API — free, no API key required
 const LINGVA_INSTANCES = [
@@ -71,14 +72,23 @@ export default function TranslateSection({ onBookmark }) {
   };
 
   const handleBookmark = () => {
-    onBookmark({
+    onBookmark?.({
       source_text: sourceText,
       translated_text: translatedText,
       source_language: sourceLang,
       target_language: targetLang,
       cultural_notes: ""
     });
-    toast.success("Saved to phrasebook!");
+
+    // Also persist directly to Spaced Repetition (SRS) vocabulary deck
+    api.addVocabulary({
+      langCode: targetLang,
+      term: translatedText,
+      meaning: sourceText,
+      deck: "Saved Translations"
+    }).catch(() => {});
+
+    toast.success("Saved to SRS Vocabulary Deck!");
   };
 
   return (

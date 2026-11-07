@@ -1,38 +1,52 @@
+import React from "react";
 import { motion } from "framer-motion";
-import { LayoutDashboard, BookOpen, Languages, Globe2 } from "lucide-react";
+import {
+  LayoutDashboard,
+  BookOpen,
+  Brain,
+  Mic,
+  BookMarked,
+  MapPin,
+  Languages,
+  Globe2
+} from "lucide-react";
 
-const tabs = [
+export const APP_TABS = [
   { id: "dashboard", label: "Home", icon: LayoutDashboard },
   { id: "learn", label: "Learn", icon: BookOpen },
+  { id: "vocabulary", label: "Vocab", icon: Brain },
+  { id: "speak", label: "Speak & AI", icon: Mic },
+  { id: "grammar", label: "Grammar", icon: BookMarked },
+  { id: "phrasebook", label: "Phrasebook", icon: MapPin },
   { id: "translate", label: "Translate", icon: Languages },
   { id: "culture", label: "Culture", icon: Globe2 },
 ];
 
 export default function TabBar({ active, onChange }) {
   return (
-    <div className="bg-background/80 backdrop-blur-2xl border-b border-white/[0.04] sticky top-[57px] z-40">
-      <div className="max-w-4xl mx-auto flex px-2">
-        {tabs.map(tab => {
+    <div className="bg-background/80 backdrop-blur-2xl border-b border-white/[0.06] sticky top-[57px] z-40 overflow-x-auto no-scrollbar">
+      <div className="max-w-4xl mx-auto flex px-2 min-w-max md:min-w-0">
+        {APP_TABS.map(tab => {
           const Icon = tab.icon;
           const isActive = active === tab.id;
           return (
             <button
               key={tab.id}
               onClick={() => onChange(tab.id)}
-              className="flex-1 relative py-3 px-2 flex flex-col items-center gap-1 transition-all group"
+              className="flex-1 min-w-[70px] relative py-2.5 px-2 flex flex-col items-center gap-1 transition-all group"
             >
-              <Icon className={`w-5 h-5 transition-all duration-300 ${
+              <Icon className={`w-4 h-4 transition-all duration-300 ${
                 isActive ? "text-primary scale-110" : "text-muted-foreground/60 group-hover:text-muted-foreground"
               }`} />
               <span className={`text-[11px] font-medium transition-all duration-300 ${
-                isActive ? "text-foreground" : "text-muted-foreground/60 group-hover:text-muted-foreground"
+                isActive ? "text-foreground font-semibold" : "text-muted-foreground/60 group-hover:text-muted-foreground"
               }`}>
                 {tab.label}
               </span>
               {isActive && (
                 <motion.div
                   layoutId="tab-indicator"
-                  className="absolute bottom-0 left-4 right-4 h-0.5 rounded-full bg-primary shadow-sm shadow-primary/30"
+                  className="absolute bottom-0 left-2 right-2 h-0.5 rounded-full bg-primary shadow-sm shadow-primary/30"
                   transition={{ type: "spring", stiffness: 500, damping: 30 }}
                 />
               )}

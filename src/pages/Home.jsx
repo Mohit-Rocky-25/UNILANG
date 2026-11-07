@@ -10,6 +10,7 @@ import LearnSection from "@/components/learn/LearnSection";
 import TranslateSection from "@/components/translate/TranslateSection";
 import CultureSection from "@/components/culture/CultureSection";
 import DashboardSection from "@/components/dashboard/DashboardSection";
+import VocabularySection from "@/components/vocabulary/VocabularySection";
 
 export default function Home() {
   const navigate = useNavigate();
@@ -139,6 +140,17 @@ export default function Home() {
                 progress={progress}
                 onXPGain={handleXPGain}
               />
+            </motion.div>
+          )}
+          {activeTab === "vocabulary" && (
+            <motion.div
+              key="vocabulary"
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ type: "spring", stiffness: 400, damping: 30 }}
+            >
+              <VocabularySection userProfile={profile} />
             </motion.div>
           )}
           {activeTab === "translate" && (
