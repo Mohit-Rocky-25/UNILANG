@@ -11,8 +11,10 @@ import TranslateSection from "@/components/translate/TranslateSection";
 import CultureSection from "@/components/culture/CultureSection";
 import DashboardSection from "@/components/dashboard/DashboardSection";
 import VocabularySection from "@/components/vocabulary/VocabularySection";
-import ConversationPartner from "@/components/speak/ConversationPartner";
+import SpeakSection from "@/components/speak/SpeakSection";
 import GrammarSection from "@/components/grammar/GrammarSection";
+import PhrasebookSection from "@/components/phrasebook/PhrasebookSection";
+import ReadingStudio from "@/components/reading/ReadingStudio";
 
 export default function Home() {
   const navigate = useNavigate();
@@ -163,7 +165,7 @@ export default function Home() {
               exit={{ opacity: 0, y: -8 }}
               transition={{ type: "spring", stiffness: 400, damping: 30 }}
             >
-              <ConversationPartner userProfile={profile} />
+              <SpeakSection userProfile={profile} onXPGain={handleXPGain} />
             </motion.div>
           )}
           {activeTab === "grammar" && (
@@ -177,6 +179,28 @@ export default function Home() {
               <GrammarSection userProfile={profile} />
             </motion.div>
           )}
+          {activeTab === "phrasebook" && (
+            <motion.div
+              key="phrasebook"
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ type: "spring", stiffness: 400, damping: 30 }}
+            >
+              <PhrasebookSection userProfile={profile} />
+            </motion.div>
+          )}
+          {activeTab === "reading" && (
+            <motion.div
+              key="reading"
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ type: "spring", stiffness: 400, damping: 30 }}
+            >
+              <ReadingStudio userProfile={profile} onXPGain={handleXPGain} />
+            </motion.div>
+          )}
           {activeTab === "translate" && (
             <motion.div
               key="translate"
@@ -185,7 +209,11 @@ export default function Home() {
               exit={{ opacity: 0, y: -8 }}
               transition={{ type: "spring", stiffness: 400, damping: 30 }}
             >
-              <TranslateSection onBookmark={handleBookmark} />
+              <TranslateSection
+                onBookmark={handleBookmark}
+                onExplainGrammar={(txt) => setActiveTab("grammar")}
+                onSendToConversation={(txt) => setActiveTab("speak")}
+              />
             </motion.div>
           )}
           {activeTab === "culture" && (

@@ -1,6 +1,17 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { ArrowLeftRight, Copy, Bookmark, Loader2, Sparkles } from "lucide-react";
+import {
+  ArrowLeftRight,
+  Copy,
+  Bookmark,
+  Loader2,
+  Sparkles,
+  Volume2,
+  BookMarked,
+  MessageSquare,
+  Check,
+  ShieldCheck
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -36,25 +47,43 @@ async function translateWithLingva(source, target, text) {
   throw lastError || new Error("All translation instances failed");
 }
 
-export default function TranslateSection({ onBookmark }) {
+export default function TranslateSection({ onBookmark, onExplainGrammar, onSendToConversation }) {
   const [sourceText, setSourceText] = useState("");
   const [translatedText, setTranslatedText] = useState("");
   const [sourceLang, setSourceLang] = useState("en");
   const [targetLang, setTargetLang] = useState("es");
   const [mode, setMode] = useState("idiomatic");
+  const [formality, setFormality] = useState("informal"); // 'informal' | 'formal'
   const [loading, setLoading] = useState(false);
+  const [isSaved, setIsSaved] = useState(false);
+
+  const supportsFormality = ["es", "de", "fr", "it", "ja", "ru"].includes(targetLang);
 
   const handleSwap = () => {
     setSourceLang(targetLang);
     setTargetLang(sourceLang);
     setSourceText(translatedText);
     setTranslatedText(sourceText);
+    setIsSaved(false);
   };
 
   const handleTranslate = async () => {
     if (!sourceText.trim()) return;
     setLoading(true);
+    setIsSaved(false);
     try {
+      // First attempt server translation adapter
+      try {
+        const serverRes = await api.translate(sourceText, sourceLang, targetLang, formality);
+        if (serverRes?.translatedText) {
+          setTranslatedText(serverRes.translatedText);
+          setLoading(false);
+          return;
+        }
+      } catch {
+        // Fall back to direct Lingva
+      }
+
       const result = await translateWithLingva(sourceLang, targetLang, sourceText);
       setTranslatedText(result);
     } catch (err) {
@@ -71,12 +100,22 @@ export default function TranslateSection({ onBookmark }) {
     toast.success("Copied to clipboard!");
   };
 
+  const playAudio = () => {
+    if ("speechSynthesis" in window && translatedText) {
+      window.speechSynthesis.cancel();
+      const utterance = new SpeechSynthesisUtterance(translatedText);
+      utterance.lang = targetLang === "es" ? "es-ES" : targetLang === "it" ? "it-IT" : targetLang === "fr" ? "fr-FR" : targetLang === "de" ? "de-DE" : targetLang === "ja" ? "ja-JP" : "en-US";
+      window.speechSynthesis.speak(utterance);
+    }
+  };
+
   const handleBookmark = () => {
     onBookmark?.({
       source_text: sourceText,
       translated_text: translatedText,
       source_language: sourceLang,
       target_language: targetLang,
+      formality,
       cultural_notes: ""
     });
 
@@ -88,6 +127,7 @@ export default function TranslateSection({ onBookmark }) {
       deck: "Saved Translations"
     }).catch(() => {});
 
+    setIsSaved(true);
     toast.success("Saved to SRS Vocabulary Deck!");
   };
 
@@ -97,24 +137,52 @@ export default function TranslateSection({ onBookmark }) {
       animate={{ opacity: 1 }}
       className="px-4 py-6 max-w-2xl mx-auto"
     >
-      {/* Mode Toggle */}
-      <div className="flex gap-1.5 mb-6 bg-secondary/30 p-1 rounded-xl border border-white/[0.04]">
-        {[
-          { id: "literal", label: "Literal" },
-          { id: "idiomatic", label: "Cultural / Idiomatic" }
-        ].map(m => (
-          <button
-            key={m.id}
-            onClick={() => setMode(m.id)}
-            className={`flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-all duration-300 ${
-              mode === m.id
-                ? "bg-white text-black shadow-sm"
-                : "text-muted-foreground hover:text-foreground"
-            }`}
-          >
-            {m.label}
-          </button>
-        ))}
+      {/* Mode & Formality Toggles */}
+      <div className="flex flex-col sm:flex-row gap-2 mb-6">
+        <div className="flex-1 flex gap-1 bg-secondary/30 p-1 rounded-xl border border-white/[0.04]">
+          {[
+            { id: "literal", label: "Literal" },
+            { id: "idiomatic", label: "Cultural / Idiomatic" }
+          ].map(m => (
+            <button
+              key={m.id}
+              onClick={() => setMode(m.id)}
+              className={`flex-1 py-1.5 px-3 rounded-lg text-xs font-semibold transition-all duration-300 ${
+                mode === m.id
+                  ? "bg-white text-black shadow-sm"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              {m.label}
+            </button>
+          ))}
+        </div>
+
+        {/* Formality toggle when supported */}
+        {supportsFormality && (
+          <div className="flex gap-1 bg-secondary/30 p-1 rounded-xl border border-white/[0.04]">
+            <button
+              onClick={() => setFormality("informal")}
+              className={`py-1.5 px-3 rounded-lg text-xs font-semibold transition-all ${
+                formality === "informal"
+                  ? "bg-primary text-primary-foreground shadow-sm"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              Informal (tú/du)
+            </button>
+            <button
+              onClick={() => setFormality("formal")}
+              className={`py-1.5 px-3 rounded-lg text-xs font-semibold transition-all ${
+                formality === "formal"
+                  ? "bg-primary text-primary-foreground shadow-sm"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              Formal (Ud./Sie)
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Source */}
@@ -178,16 +246,38 @@ export default function TranslateSection({ onBookmark }) {
             </SelectContent>
           </Select>
           {translatedText && (
-            <div className="flex gap-1">
-              <Button variant="ghost" size="icon" onClick={handleCopy} className="rounded-xl text-muted-foreground hover:text-foreground">
+            <div className="flex items-center gap-1">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={playAudio}
+                className="rounded-xl text-primary hover:text-primary/80"
+                title="Listen"
+              >
+                <Volume2 className="w-4 h-4" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={handleCopy}
+                className="rounded-xl text-muted-foreground hover:text-foreground"
+                title="Copy text"
+              >
                 <Copy className="w-4 h-4" />
               </Button>
-              <Button variant="ghost" size="icon" onClick={handleBookmark} className="rounded-xl text-amber-400 hover:text-amber-300">
-                <Bookmark className="w-4 h-4" />
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={handleBookmark}
+                className={`rounded-xl ${isSaved ? "text-emerald-400 bg-emerald-500/10" : "text-amber-400 hover:text-amber-300"}`}
+                title="Save to SRS Vocabulary Deck"
+              >
+                {isSaved ? <Check className="w-4 h-4" /> : <Bookmark className="w-4 h-4" />}
               </Button>
             </div>
           )}
         </div>
+
         <div className="glass-card min-h-[120px] p-4 text-[15px] leading-relaxed">
           {loading ? (
             <div className="flex items-center gap-2 text-muted-foreground">
@@ -198,6 +288,31 @@ export default function TranslateSection({ onBookmark }) {
             translatedText || <span className="text-muted-foreground/50">Translation will appear here...</span>
           )}
         </div>
+
+        {/* 1-Tap Cross-Module Actions */}
+        {translatedText && !loading && (
+          <div className="mt-3 flex flex-wrap gap-2 pt-2 border-t border-white/[0.04]">
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => onExplainGrammar?.(translatedText)}
+              className="rounded-xl text-xs font-semibold flex items-center gap-1.5 bg-secondary/20 border-white/[0.08] hover:bg-secondary/40"
+            >
+              <BookMarked className="w-3.5 h-3.5 text-primary" />
+              <span>Explain Grammar</span>
+            </Button>
+
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => onSendToConversation?.(translatedText)}
+              className="rounded-xl text-xs font-semibold flex items-center gap-1.5 bg-secondary/20 border-white/[0.08] hover:bg-secondary/40"
+            >
+              <MessageSquare className="w-3.5 h-3.5 text-primary" />
+              <span>Send to Conversation Partner</span>
+            </Button>
+          </div>
+        )}
       </div>
     </motion.div>
   );

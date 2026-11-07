@@ -7,6 +7,7 @@ import {
   Mic,
   BookMarked,
   MapPin,
+  BookText,
   Languages,
   Globe2
 } from "lucide-react";
@@ -18,6 +19,7 @@ export const APP_TABS = [
   { id: "speak", label: "Speak & AI", icon: Mic },
   { id: "grammar", label: "Grammar", icon: BookMarked },
   { id: "phrasebook", label: "Phrasebook", icon: MapPin },
+  { id: "reading", label: "Reading", icon: BookText },
   { id: "translate", label: "Translate", icon: Languages },
   { id: "culture", label: "Culture", icon: Globe2 },
 ];
