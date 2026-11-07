@@ -18,13 +18,8 @@ export default function Home() {
 
   useEffect(() => {
     let stored = localStorage.getItem("unilang_profile");
-    const tempUser = localStorage.getItem("unilang_temp_user");
     if (!stored) {
-      if (tempUser) {
-        navigate("/onboarding");
-        return;
-      }
-      // Auto-initialize demo profile so user never gets blocked by login procedures
+      // Auto-initialize demo profile so user is never redirected away or blocked
       const demoProfile = {
         name: "Alex Morgan",
         email: "demo@unilang.app",

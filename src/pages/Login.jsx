@@ -1,6 +1,6 @@
 const db = globalThis.__B44_DB__ || { auth:{ isAuthenticated: async()=>false, me: async()=>null }, entities:new Proxy({}, { get:()=>({ filter:async()=>[], get:async()=>null, create:async()=>({}), update:async()=>({}), delete:async()=>({}) }) }), integrations:{ Core:{ UploadFile:async()=>({ file_url:'' }) } } };
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 
 import { Button } from "@/components/ui/button";
@@ -17,6 +17,19 @@ export default function Login() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
+  // If already logged in, seamlessly redirect to home
+  useEffect(() => {
+    const stored = localStorage.getItem("unilang_profile");
+    if (stored) {
+      try {
+        const parsed = JSON.parse(stored);
+        if (parsed?.onboarding_complete) {
+          navigate("/home", { replace: true });
+        }
+      } catch (e) {}
+    }
+  }, [navigate]);
+
   const handleInstantDemoLogin = () => {
     const demoProfile = {
       name: "Alex Morgan",
@@ -31,7 +44,7 @@ export default function Login() {
       isDemoUser: true
     };
     localStorage.setItem("unilang_profile", JSON.stringify(demoProfile));
-    window.location.href = "/home";
+    navigate("/home", { replace: true });
   };
 
   const handleFillDemo = () => {
@@ -53,7 +66,7 @@ export default function Login() {
 
     try {
       await db.auth.loginViaEmailPassword(email, password);
-      window.location.href = "/home";
+      navigate("/home", { replace: true });
     } catch (err) {
       setError(err.message || "Invalid email or password");
     } finally {

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
@@ -10,18 +10,34 @@ export default function EntryPage() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
 
+  // Seamlessly enter home if user already has an active profile
+  useEffect(() => {
+    const stored = localStorage.getItem("unilang_profile");
+    if (stored) {
+      try {
+        const parsed = JSON.parse(stored);
+        if (parsed?.onboarding_complete) {
+          navigate("/home", { replace: true });
+        }
+      } catch (e) {}
+    }
+  }, [navigate]);
+
   const handleStart = (e) => {
     e.preventDefault();
     const profile = {
-      name: name || "Learner",
-      email: email || "learner@unilang.app",
-      xp_points: 0,
-      streak_count: 0,
+      name: name.trim() || "Learner",
+      email: email.trim() || "learner@unilang.app",
+      native_language: "en",
+      target_languages: ["es", "ja", "fr", "te"],
+      interests: ["culture", "travel", "food"],
       level: "beginner",
-      onboarding_complete: false,
+      xp_points: 0,
+      streak_count: 1,
+      onboarding_complete: true,
     };
-    localStorage.setItem("unilang_temp_user", JSON.stringify(profile));
-    navigate("/onboarding");
+    localStorage.setItem("unilang_profile", JSON.stringify(profile));
+    navigate("/home", { replace: true });
   };
 
   const handleQuickDemo = () => {
@@ -38,7 +54,7 @@ export default function EntryPage() {
       isDemoUser: true
     };
     localStorage.setItem("unilang_profile", JSON.stringify(demoProfile));
-    navigate("/home");
+    navigate("/home", { replace: true });
   };
 
   const handleSkip = () => {
@@ -54,7 +70,7 @@ export default function EntryPage() {
       onboarding_complete: true,
     };
     localStorage.setItem("unilang_profile", JSON.stringify(quickProfile));
-    navigate("/home");
+    navigate("/home", { replace: true });
   };
 
   return (
@@ -94,7 +110,7 @@ export default function EntryPage() {
                 Demo Account Details
               </span>
               <span className="text-[10px] bg-emerald-500/15 text-emerald-400 border border-emerald-500/25 px-2 py-0.5 rounded-full font-semibold">
-                No Login Required
+                Instant Access
               </span>
             </div>
 
