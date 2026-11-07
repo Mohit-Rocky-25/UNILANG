@@ -11,11 +11,11 @@ export const LANGUAGES = [
   { code: "zh", name: "Chinese", flag: "🇨🇳", region: "Asia", image: "https://images.unsplash.com/photo-1474181487882-5abf3f0ba6c2?w=800&q=85" },
   { code: "hi", name: "Hindi", flag: "🇮🇳", region: "Asia", image: "https://images.unsplash.com/photo-1524492412937-b28074a5d7da?w=800&q=85" },
   { code: "te", name: "Telugu", flag: "🇮🇳", region: "Asia", image: "https://images.unsplash.com/photo-1625505826533-5c80aca7d157?w=800&q=85" },
-  { code: "ar", name: "Arabic", flag: "🇸🇦", region: "Middle East", image: "https://images.unsplash.com/photo-1575101261474-5cb5653bbcaa?w=800&q=85" },
+  { code: "ar", name: "Arabic", flag: "🇸🇦", region: "Middle East", image: "https://images.unsplash.com/photo-1512632578888-169bbbc64f33?auto=format&fit=crop&w=1200&q=90" },
   { code: "tr", name: "Turkish", flag: "🇹🇷", region: "Middle East", image: "https://images.unsplash.com/photo-1524231757912-21f4fe3a7200?w=800&q=85" },
   { code: "th", name: "Thai", flag: "🇹🇭", region: "Asia", image: "https://images.unsplash.com/photo-1552465011-b4e21bf6e79a?w=800&q=85" },
   { code: "vi", name: "Vietnamese", flag: "🇻🇳", region: "Asia", image: "https://images.unsplash.com/photo-1583417319070-4a69db38a482?w=800&q=85" },
-  { code: "nl", name: "Dutch", flag: "🇳🇱", region: "Europe", image: "https://images.unsplash.com/photo-1512470876302-972faa0aa9e4?w=800&q=85" },
+  { code: "nl", name: "Dutch", flag: "🇳🇱", region: "Europe", image: "https://images.unsplash.com/photo-1583295125721-766a0088cd3f?auto=format&fit=crop&w=1200&q=90" },
   { code: "sv", name: "Swedish", flag: "🇸🇪", region: "Europe", image: "https://images.unsplash.com/photo-1509356843151-3e7d96241e11?w=800&q=85" },
   { code: "pl", name: "Polish", flag: "🇵🇱", region: "Europe", image: "https://images.unsplash.com/photo-1519197924294-4ba991a11128?w=800&q=85" },
   { code: "sw", name: "Swahili", flag: "🇰🇪", region: "Africa", image: "https://images.unsplash.com/photo-1489749798305-4fea3ae63d43?w=800&q=85" },
@@ -436,7 +436,7 @@ export const CULTURE_DATA = {
   ar: {
     name: "Arabic",
     flag: "🇸🇦",
-    image: "https://images.unsplash.com/photo-1575101261474-5cb5653bbcaa?w=1200&q=90",
+    image: "https://images.unsplash.com/photo-1512632578888-169bbbc64f33?auto=format&fit=crop&w=1200&q=90",
     regionImages: [
       "https://images.unsplash.com/photo-1537996194471-e657df975ab4?w=800&q=85",
       "https://images.unsplash.com/photo-1562804862-caced2e7f65c?w=800&q=85",
@@ -532,7 +532,7 @@ export const CULTURE_DATA = {
   nl: {
     name: "Dutch",
     flag: "🇳🇱",
-    image: "https://images.unsplash.com/photo-1512470876302-972faa0aa9e4?w=1200&q=90",
+    image: "https://images.unsplash.com/photo-1583295125721-766a0088cd3f?auto=format&fit=crop&w=1200&q=90",
     regionImages: [
       "https://images.unsplash.com/photo-1534351590666-13e3e96b5017?w=800&q=85",
       "https://images.unsplash.com/photo-1519681393784-d120267933ba?w=800&q=85",

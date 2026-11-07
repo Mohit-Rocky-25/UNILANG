@@ -1,6 +1,23 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, Lightbulb, MapPin, BookOpen, Sparkles, Users, Image as ImageIcon, ImageOff, Utensils, Shirt, Landmark, Sunset } from "lucide-react";
+import {
+  ArrowLeft,
+  Lightbulb,
+  MapPin,
+  BookOpen,
+  Sparkles,
+  Users,
+  Image as ImageIcon,
+  ImageOff,
+  Utensils,
+  Shirt,
+  Landmark,
+  Sunset,
+  Maximize2,
+  ChevronLeft,
+  ChevronRight,
+  X
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { getGalleryImages, GALLERY_CATEGORIES } from "@/lib/cultureImages";
 
@@ -23,6 +40,7 @@ export default function CultureDetail({ data, langCode, activeTab, tabs, onTabCh
   const [heroError, setHeroError] = useState(false);
   const [galleryCategory, setGalleryCategory] = useState("all");
   const [imgErrors, setImgErrors] = useState({});
+  const [activeModalIndex, setActiveModalIndex] = useState(null);
 
   const allGalleryImages = getGalleryImages(langCode);
   const filteredImages = galleryCategory === "all"
@@ -32,6 +50,21 @@ export default function CultureDetail({ data, langCode, activeTab, tabs, onTabCh
   const handleImgError = (idx) => {
     setImgErrors(prev => ({ ...prev, [idx]: true }));
   };
+
+  useEffect(() => {
+    if (activeModalIndex === null) return;
+    const handleKeyDown = (e) => {
+      if (e.key === "Escape") setActiveModalIndex(null);
+      if (e.key === "ArrowLeft") {
+        setActiveModalIndex(prev => (prev > 0 ? prev - 1 : filteredImages.length - 1));
+      }
+      if (e.key === "ArrowRight") {
+        setActiveModalIndex(prev => (prev < filteredImages.length - 1 ? prev + 1 : 0));
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [activeModalIndex, filteredImages.length]);
 
   const renderContent = () => {
     switch (activeTab) {
@@ -169,9 +202,12 @@ export default function CultureDetail({ data, langCode, activeTab, tabs, onTabCh
       {/* Categorized Image Gallery */}
       {filteredImages.length > 0 && (
         <div className="mt-8">
-          <div className="flex items-center gap-2 mb-4">
-            <ImageIcon className="w-4 h-4 text-muted-foreground" />
-            <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Cultural Gallery</h3>
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <ImageIcon className="w-4 h-4 text-primary" />
+              <h3 className="text-sm font-semibold text-foreground uppercase tracking-wider">Cultural Gallery</h3>
+            </div>
+            <span className="text-xs text-muted-foreground">Click photo to view high-res</span>
           </div>
 
           {/* Category Filter */}
@@ -189,7 +225,10 @@ export default function CultureDetail({ data, langCode, activeTab, tabs, onTabCh
               return (
                 <button
                   key={cat.id}
-                  onClick={() => setGalleryCategory(cat.id)}
+                  onClick={() => {
+                    setGalleryCategory(cat.id);
+                    setActiveModalIndex(null);
+                  }}
                   className={`flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all duration-300 ${
                     isActive
                       ? "bg-primary text-white shadow-lg shadow-primary/20"
@@ -198,7 +237,7 @@ export default function CultureDetail({ data, langCode, activeTab, tabs, onTabCh
                 >
                   {Icon && <Icon className="w-3 h-3" />}
                   {cat.label}
-                  <span className="opacity-60">{count}</span>
+                  <span className="opacity-60">({count})</span>
                 </button>
               );
             })}
@@ -211,22 +250,30 @@ export default function CultureDetail({ data, langCode, activeTab, tabs, onTabCh
                 key={`${galleryCategory}-${i}`}
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: i * 0.06, type: "spring", stiffness: 400 }}
-                className="relative rounded-xl overflow-hidden shadow-lg shadow-black/20 aspect-[4/3] group"
+                transition={{ delay: i * 0.05, type: "spring", stiffness: 400 }}
+                onClick={() => !imgErrors[i] && setActiveModalIndex(i)}
+                className="relative rounded-xl overflow-hidden shadow-lg shadow-black/20 aspect-[4/3] group cursor-pointer border border-white/5 hover:border-primary/40 transition-all duration-300"
               >
                 {!imgErrors[i] ? (
                   <>
                     <img
                       src={img.url}
                       alt={img.caption}
-                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                       loading="lazy"
                       onError={() => handleImgError(i)}
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                    <div className="absolute bottom-0 left-0 right-0 p-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                      <p className="text-white text-[11px] font-medium leading-tight">{img.caption}</p>
-                      <span className="text-white/60 text-[9px] uppercase tracking-wide">{img.category}</span>
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-transparent opacity-70 group-hover:opacity-90 transition-opacity duration-300" />
+                    
+                    {/* Expand icon on hover */}
+                    <div className="absolute top-2 right-2 p-1.5 rounded-full bg-black/50 backdrop-blur-sm text-white/80 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                      <Maximize2 className="w-3.5 h-3.5" />
+                    </div>
+
+                    {/* Image Caption & Category */}
+                    <div className="absolute bottom-0 left-0 right-0 p-2.5">
+                      <p className="text-white text-xs font-medium leading-tight line-clamp-1">{img.caption}</p>
+                      <span className="text-white/60 text-[10px] uppercase tracking-wide">{img.category}</span>
                     </div>
                   </>
                 ) : (
@@ -239,6 +286,90 @@ export default function CultureDetail({ data, langCode, activeTab, tabs, onTabCh
           </div>
         </div>
       )}
+
+      {/* Lightbox High-Resolution Modal */}
+      <AnimatePresence>
+        {activeModalIndex !== null && filteredImages[activeModalIndex] && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md"
+            onClick={() => setActiveModalIndex(null)}
+          >
+            <motion.div
+              initial={{ scale: 0.92, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.92, opacity: 0 }}
+              transition={{ type: "spring", damping: 25, stiffness: 300 }}
+              className="relative max-w-4xl w-full max-h-[90vh] flex flex-col items-center bg-card/95 border border-white/10 rounded-2xl overflow-hidden shadow-2xl"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Modal Header */}
+              <div className="w-full flex items-center justify-between px-5 py-3 border-b border-white/10 bg-black/40">
+                <div className="flex items-center gap-2">
+                  <span className="text-xl">{data.flag}</span>
+                  <span className="text-sm font-semibold text-white">{data.name} Culture</span>
+                  <span className="text-xs px-2.5 py-0.5 rounded-full bg-primary/20 text-primary-foreground border border-primary/30 uppercase tracking-wider font-semibold">
+                    {filteredImages[activeModalIndex].category}
+                  </span>
+                </div>
+                <button
+                  onClick={() => setActiveModalIndex(null)}
+                  className="p-1.5 rounded-full hover:bg-white/10 text-white/70 hover:text-white transition-colors"
+                  aria-label="Close"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              {/* Modal Image & Navigation */}
+              <div className="relative w-full flex items-center justify-center bg-black/70 p-2 sm:p-4 max-h-[65vh] overflow-hidden">
+                <img
+                  src={filteredImages[activeModalIndex].url}
+                  alt={filteredImages[activeModalIndex].caption}
+                  className="max-h-[60vh] max-w-full w-auto object-contain rounded-xl shadow-lg"
+                />
+
+                {filteredImages.length > 1 && (
+                  <>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setActiveModalIndex(prev => (prev > 0 ? prev - 1 : filteredImages.length - 1));
+                      }}
+                      className="absolute left-3 top-1/2 -translate-y-1/2 p-2 rounded-full bg-black/60 hover:bg-black/90 text-white/80 hover:text-white transition-all backdrop-blur-sm border border-white/10"
+                      aria-label="Previous image"
+                    >
+                      <ChevronLeft className="w-5 h-5" />
+                    </button>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setActiveModalIndex(prev => (prev < filteredImages.length - 1 ? prev + 1 : 0));
+                      }}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 p-2 rounded-full bg-black/60 hover:bg-black/90 text-white/80 hover:text-white transition-all backdrop-blur-sm border border-white/10"
+                      aria-label="Next image"
+                    >
+                      <ChevronRight className="w-5 h-5" />
+                    </button>
+                  </>
+                )}
+              </div>
+
+              {/* Modal Footer */}
+              <div className="w-full flex items-center justify-between px-5 py-3 border-t border-white/10 bg-black/40">
+                <p className="text-sm font-medium text-white/95">
+                  {filteredImages[activeModalIndex].caption}
+                </p>
+                <span className="text-xs text-muted-foreground whitespace-nowrap ml-4">
+                  {activeModalIndex + 1} of {filteredImages.length}
+                </span>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </motion.div>
   );
 }
