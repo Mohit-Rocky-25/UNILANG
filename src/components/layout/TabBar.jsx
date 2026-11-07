@@ -8,6 +8,8 @@ import {
   BookMarked,
   MapPin,
   BookText,
+  Library,
+  Trophy,
   Languages,
   Globe2
 } from "lucide-react";
@@ -16,10 +18,12 @@ export const APP_TABS = [
   { id: "dashboard", label: "Home", icon: LayoutDashboard },
   { id: "learn", label: "Learn", icon: BookOpen },
   { id: "vocabulary", label: "Vocab", icon: Brain },
-  { id: "speak", label: "Speak & AI", icon: Mic },
+  { id: "speak", label: "Speak", icon: Mic },
   { id: "grammar", label: "Grammar", icon: BookMarked },
   { id: "phrasebook", label: "Phrasebook", icon: MapPin },
   { id: "reading", label: "Reading", icon: BookText },
+  { id: "library", label: "Notebook", icon: Library },
+  { id: "community", label: "Arena", icon: Trophy },
   { id: "translate", label: "Translate", icon: Languages },
   { id: "culture", label: "Culture", icon: Globe2 },
 ];
@@ -35,7 +39,7 @@ export default function TabBar({ active, onChange }) {
             <button
               key={tab.id}
               onClick={() => onChange(tab.id)}
-              className="flex-1 min-w-[70px] relative py-2.5 px-2 flex flex-col items-center gap-1 transition-all group"
+              className="flex-1 min-w-[65px] relative py-2.5 px-2 flex flex-col items-center gap-1 transition-all group"
             >
               <Icon className={`w-4 h-4 transition-all duration-300 ${
                 isActive ? "text-primary scale-110" : "text-muted-foreground/60 group-hover:text-muted-foreground"

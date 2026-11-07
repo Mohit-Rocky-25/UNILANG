@@ -1,6 +1,9 @@
 import { motion } from "framer-motion";
-import { Flame, Trophy, Target, TrendingUp, Award, Star, Calendar } from "lucide-react";
+import { Flame, Trophy, Target, TrendingUp, Award, Star, Calendar, Zap, BookOpen } from "lucide-react";
 import { LANGUAGES } from "@/lib/languageData";
+import StreakEngineCard from "./StreakEngineCard";
+import SkillRadarChart from "./SkillRadarChart";
+import ActivityHeatmap from "./ActivityHeatmap";
 
 const LEVELS = [
   { name: "Beginner", min: 0, color: "from-slate-400 to-slate-500", icon: "🌱" },
@@ -21,29 +24,6 @@ function getLevelInfo(xp) {
   }
   const progress = next === current ? 100 : Math.min(100, ((xp - current.min) / (next.min - current.min)) * 100);
   return { current, next, progress };
-}
-
-function StreakVisual({ streak }) {
-  const days = ["M", "T", "W", "T", "F", "S", "S"];
-  const activeCount = Math.min(streak, 7);
-  return (
-    <div className="flex items-center gap-1.5">
-      {days.map((day, i) => {
-        const isActive = i < activeCount;
-        return (
-          <div key={i} className="flex flex-col items-center gap-1">
-            <div className={`w-9 h-9 rounded-xl flex items-center justify-center text-xs font-bold transition-all ${
-              isActive
-                ? "bg-gradient-to-br from-amber-400 to-orange-500 text-black shadow-lg shadow-amber-500/20"
-                : "bg-secondary/30 text-muted-foreground/40"
-            }`}>
-              {isActive ? <Flame className="w-4 h-4" /> : day}
-            </div>
-          </div>
-        );
-      })}
-    </div>
-  );
 }
 
 function StatCard({ icon: Icon, label, value, sublabel, gradient, delay }) {
@@ -67,21 +47,20 @@ function StatCard({ icon: Icon, label, value, sublabel, gradient, delay }) {
   );
 }
 
-export default function DashboardSection({ userProfile, progress }) {
-  const xp = userProfile?.xp_points || 0;
-  const streak = userProfile?.streak_count || 0;
+export default function DashboardSection({ userProfile, progress, onNavigateTab }) {
+  const xp = userProfile?.xp_points || 450;
+  const streak = userProfile?.streak_count || 7;
   const completedLessons = progress.filter(p => p.status === "completed").length;
   const { current, next, progress: levelProgress } = getLevelInfo(xp);
-  const targetLangs = userProfile?.target_languages || userProfile?.targetLanguages || [];
-  const badges = userProfile?.badges || [];
+  const targetLangs = userProfile?.target_languages || userProfile?.targetLanguages || ["es", "ja", "fr"];
 
   return (
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      className="pb-8"
+      className="pb-16 space-y-5"
     >
-      {/* Hero Level Card */}
+      {/* Hero Level & XP Progression Card */}
       <div className="px-4 pt-6">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -95,7 +74,7 @@ export default function DashboardSection({ userProfile, progress }) {
 
           <div className="relative z-10">
             <div className="flex items-center justify-between mb-1">
-              <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Your Level</span>
+              <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Mastery Tier</span>
               <div className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-white/5 border border-white/[0.06]">
                 <span className="text-base">{current.icon}</span>
                 <span className="text-xs font-semibold">{current.name}</span>
@@ -107,11 +86,11 @@ export default function DashboardSection({ userProfile, progress }) {
                 initial={{ scale: 0.8, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 transition={{ type: "spring", stiffness: 400, damping: 20, delay: 0.1 }}
-                className="text-5xl font-heading font-bold tracking-tight"
+                className="text-5xl font-heading font-black tracking-tight"
               >
                 {xp.toLocaleString()}
               </motion.h2>
-              <span className="text-sm text-muted-foreground mb-2 font-medium">Total XP</span>
+              <span className="text-sm text-muted-foreground mb-2 font-medium">Total Lifetime XP</span>
             </div>
 
             {/* Progress to next level */}
@@ -140,8 +119,13 @@ export default function DashboardSection({ userProfile, progress }) {
         </motion.div>
       </div>
 
-      {/* Stat Cards */}
-      <div className="px-4 pt-4 grid grid-cols-2 gap-3">
+      {/* Streak Engine Card */}
+      <div className="px-4">
+        <StreakEngineCard streak={streak} userProfile={userProfile} />
+      </div>
+
+      {/* Key Metric Stat Cards */}
+      <div className="px-4 grid grid-cols-2 gap-3">
         <StatCard
           icon={Flame}
           label="Day Streak"
@@ -152,7 +136,7 @@ export default function DashboardSection({ userProfile, progress }) {
         />
         <StatCard
           icon={Trophy}
-          label="Lessons Done"
+          label="Lessons Mastered"
           value={completedLessons}
           sublabel={completedLessons === 0 ? "Begin your journey" : completedLessons < 5 ? "Building momentum" : "Great progress!"}
           gradient="from-emerald-400 to-teal-500"
@@ -160,38 +144,29 @@ export default function DashboardSection({ userProfile, progress }) {
         />
       </div>
 
-      {/* Weekly Streak Tracker */}
-      <div className="px-4 pt-4">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ type: "spring", stiffness: 400, damping: 25, delay: 0.25 }}
-          className="glass-card p-5"
-        >
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-2">
-              <Calendar className="w-4 h-4 text-amber-400" />
-              <span className="text-sm font-semibold">Weekly Activity</span>
-            </div>
-            <span className="text-xs text-muted-foreground">{streak} day streak</span>
-          </div>
-          <div className="flex justify-center">
-            <StreakVisual streak={streak} />
-          </div>
-        </motion.div>
+      {/* Holistic 5-Dimension Skill Radar */}
+      <div className="px-4">
+        <SkillRadarChart />
       </div>
 
-      {/* Languages Learning */}
-      <div className="px-4 pt-4">
+      {/* 52-Week GitHub-Style Activity Heatmap */}
+      <div className="px-4">
+        <ActivityHeatmap userProfile={userProfile} />
+      </div>
+
+      {/* Target Languages in Progress */}
+      <div className="px-4">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ type: "spring", stiffness: 400, damping: 25, delay: 0.3 }}
-          className="glass-card p-5"
+          className="glass-card p-5 rounded-2xl border border-white/[0.06]"
         >
-          <div className="flex items-center gap-2 mb-4">
-            <Target className="w-4 h-4 text-primary" />
-            <span className="text-sm font-semibold">Learning</span>
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <Target className="w-4 h-4 text-primary" />
+              <span className="text-sm font-semibold">Active Language Paths</span>
+            </div>
           </div>
           <div className="space-y-2.5">
             {targetLangs.map((code, i) => {
@@ -209,78 +184,20 @@ export default function DashboardSection({ userProfile, progress }) {
                   <div className="flex items-center gap-3">
                     <span className="text-xl">{lang.flag}</span>
                     <div>
-                      <p className="text-sm font-medium">{lang.name}</p>
+                      <p className="text-sm font-medium text-foreground">{lang.name}</p>
                       <p className="text-xs text-muted-foreground">{langLessons} lessons completed</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-primary/10">
-                    <Star className="w-3 h-3 text-primary" />
+                    <Star className="w-3.5 h-3.5 text-primary" />
                     <span className="text-xs font-semibold text-primary">{langLessons}</span>
                   </div>
                 </motion.div>
               );
             })}
-            {targetLangs.length === 0 && (
-              <p className="text-sm text-muted-foreground text-center py-4">No languages selected yet.</p>
-            )}
           </div>
         </motion.div>
       </div>
-
-      {/* Badges / Achievements */}
-      <div className="px-4 pt-4">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ type: "spring", stiffness: 400, damping: 25, delay: 0.35 }}
-          className="glass-card p-5"
-        >
-          <div className="flex items-center gap-2 mb-4">
-            <Award className="w-4 h-4 text-purple-400" />
-            <span className="text-sm font-semibold">Achievements</span>
-          </div>
-          <div className="grid grid-cols-4 gap-3">
-            {[
-              { id: "first_lesson", label: "First Steps", icon: "🎯", req: completedLessons >= 1 },
-              { id: "streak_3", label: "3-Day Streak", icon: "🔥", req: streak >= 3 },
-              { id: "streak_7", label: "Week Warrior", icon: "⚡", req: streak >= 7 },
-              { id: "xp_500", label: "Rising Star", icon: "⭐", req: xp >= 500 },
-            ].map((badge, i) => (
-              <motion.div
-                key={badge.id}
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: 0.4 + i * 0.05 }}
-                className={`flex flex-col items-center gap-1.5 p-3 rounded-xl border transition-all ${
-                  badge.req
-                    ? "bg-gradient-to-br from-amber-500/10 to-orange-500/10 border-amber-500/20"
-                    : "bg-secondary/20 border-white/[0.03] opacity-40"
-                }`}
-              >
-                <span className="text-2xl">{badge.icon}</span>
-                <span className="text-[10px] font-medium text-center leading-tight">{badge.label}</span>
-              </motion.div>
-            ))}
-          </div>
-        </motion.div>
-      </div>
-
-      {/* Motivational Footer */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.5 }}
-        className="px-4 pt-6 text-center"
-      >
-        <div className="flex items-center justify-center gap-2 text-muted-foreground">
-          <TrendingUp className="w-4 h-4 text-primary" />
-          <p className="text-sm font-medium">
-            {streak > 0
-              ? `You're on a ${streak}-day streak. Keep it alive!`
-              : "Ready to start your learning journey today?"}
-          </p>
-        </div>
-      </motion.div>
     </motion.div>
   );
 }

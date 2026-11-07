@@ -15,6 +15,8 @@ import SpeakSection from "@/components/speak/SpeakSection";
 import GrammarSection from "@/components/grammar/GrammarSection";
 import PhrasebookSection from "@/components/phrasebook/PhrasebookSection";
 import ReadingStudio from "@/components/reading/ReadingStudio";
+import LibrarySection from "@/components/library/LibrarySection";
+import CommunitySection from "@/components/community/CommunitySection";
 
 export default function Home() {
   const navigate = useNavigate();
@@ -128,6 +130,7 @@ export default function Home() {
               <DashboardSection
                 userProfile={profile}
                 progress={progress}
+                onNavigateTab={setActiveTab}
               />
             </motion.div>
           )}
@@ -201,6 +204,28 @@ export default function Home() {
               <ReadingStudio userProfile={profile} onXPGain={handleXPGain} />
             </motion.div>
           )}
+          {activeTab === "library" && (
+            <motion.div
+              key="library"
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ type: "spring", stiffness: 400, damping: 30 }}
+            >
+              <LibrarySection userProfile={profile} />
+            </motion.div>
+          )}
+          {activeTab === "community" && (
+            <motion.div
+              key="community"
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ type: "spring", stiffness: 400, damping: 30 }}
+            >
+              <CommunitySection userProfile={profile} onXPGain={handleXPGain} />
+            </motion.div>
+          )}
           {activeTab === "translate" && (
             <motion.div
               key="translate"
@@ -224,7 +249,10 @@ export default function Home() {
               exit={{ opacity: 0, y: -8 }}
               transition={{ type: "spring", stiffness: 400, damping: 30 }}
             >
-              <CultureSection targetLanguages={profile.target_languages || []} />
+              <CultureSection
+                targetLanguages={profile.target_languages || []}
+                onXPGain={handleXPGain}
+              />
             </motion.div>
           )}
         </AnimatePresence>

@@ -7,12 +7,14 @@ import CultureDetail from "./CultureDetail";
 const SUB_TABS = [
   { id: "origins", label: "Origins" },
   { id: "evolution", label: "Evolution" },
+  { id: "timeline", label: "Timeline" },
+  { id: "etiquette", label: "Etiquette" },
   { id: "dialects", label: "Dialects" },
   { id: "funFacts", label: "Fun Facts" },
-  { id: "etiquette", label: "Etiquette" },
+  { id: "quiz", label: "Cultural Quiz" },
 ];
 
-export default function CultureSection({ targetLanguages }) {
+export default function CultureSection({ targetLanguages, onXPGain }) {
   const [selectedLang, setSelectedLang] = useState(null);
   const [activeTab, setActiveTab] = useState("origins");
 
@@ -31,6 +33,7 @@ export default function CultureSection({ targetLanguages }) {
         tabs={SUB_TABS}
         onTabChange={setActiveTab}
         onBack={() => setSelectedLang(null)}
+        onXPGain={onXPGain}
       />
     );
   }

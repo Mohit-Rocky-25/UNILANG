@@ -20,13 +20,19 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { getGalleryImages, GALLERY_CATEGORIES } from "@/lib/cultureImages";
+import { getCultureExtended } from "@/data/culture/cultureExtendedData";
+import confetti from "canvas-confetti";
+import { toast } from "sonner";
+import { Clock, Award, CheckCircle2, XCircle, HelpCircle } from "lucide-react";
 
 const tabIcons = {
   origins: BookOpen,
   evolution: Sparkles,
   dialects: MapPin,
   funFacts: Lightbulb,
+  timeline: Clock,
   etiquette: Users,
+  quiz: Award,
 };
 
 const categoryIcons = {
@@ -36,7 +42,11 @@ const categoryIcons = {
   scenes: Sunset,
 };
 
-export default function CultureDetail({ data, langCode, activeTab, tabs, onTabChange, onBack }) {
+export default function CultureDetail({ data, langCode, activeTab, tabs, onTabChange, onBack, onXPGain }) {
+  const extended = getCultureExtended(langCode);
+  const [quizAnswers, setQuizAnswers] = useState({});
+  const [quizSubmitted, setQuizSubmitted] = useState(false);
+  const [badgeUnlocked, setBadgeUnlocked] = useState(false);
   const [heroError, setHeroError] = useState(false);
   const [galleryCategory, setGalleryCategory] = useState("all");
   const [imgErrors, setImgErrors] = useState({});
@@ -106,8 +116,198 @@ export default function CultureDetail({ data, langCode, activeTab, tabs, onTabCh
             ))}
           </div>
         );
+      case "timeline":
+        return (
+          <div className="space-y-4">
+            <p className="text-xs text-muted-foreground mb-4">
+              5 monumental milestones that shaped the history, grammar, and literature of {data.name}.
+            </p>
+            <div className="relative border-l-2 border-primary/30 ml-3 space-y-6 pl-6">
+              {extended.timeline?.map((item, idx) => (
+                <div key={idx} className="relative group">
+                  <div className="absolute -left-[31px] top-1 w-4 h-4 rounded-full bg-primary border-4 border-background" />
+                  <div className="glass-card p-4 rounded-2xl border border-white/[0.06] hover:border-primary/40 transition-all">
+                    <span className="text-xs font-mono font-bold px-2 py-0.5 rounded bg-primary/20 text-primary">
+                      {item.year}
+                    </span>
+                    <h4 className="text-base font-heading font-bold text-foreground mt-1.5">{item.title}</h4>
+                    <p className="text-xs text-muted-foreground mt-1 leading-relaxed">{item.description}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        );
       case "etiquette":
-        return <p className="text-foreground/90 leading-relaxed text-[15px]">{data.etiquette}</p>;
+        return (
+          <div className="space-y-6">
+            <p className="text-foreground/90 leading-relaxed text-[15px] glass-card p-4 rounded-2xl border border-white/[0.06]">
+              {data.etiquette}
+            </p>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* 5 Dos */}
+              <div className="space-y-3">
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 className="w-5 h-5 text-emerald-400" />
+                  <h4 className="text-sm font-heading font-bold text-emerald-400 uppercase tracking-wider">
+                    5 Cultural Dos
+                  </h4>
+                </div>
+                {extended.etiquette?.dos?.map((item, idx) => (
+                  <div key={idx} className="p-3.5 rounded-xl bg-emerald-500/5 border border-emerald-500/20 space-y-1">
+                    <p className="text-xs font-bold text-foreground flex items-center gap-1.5">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                      {item.rule}
+                    </p>
+                    <p className="text-[11px] text-muted-foreground leading-relaxed pl-3">{item.context}</p>
+                  </div>
+                ))}
+              </div>
+
+              {/* 5 Don'ts */}
+              <div className="space-y-3">
+                <div className="flex items-center gap-2">
+                  <XCircle className="w-5 h-5 text-rose-400" />
+                  <h4 className="text-sm font-heading font-bold text-rose-400 uppercase tracking-wider">
+                    5 Cultural Don'ts
+                  </h4>
+                </div>
+                {extended.etiquette?.donts?.map((item, idx) => (
+                  <div key={idx} className="p-3.5 rounded-xl bg-rose-500/5 border border-rose-500/20 space-y-1">
+                    <p className="text-xs font-bold text-foreground flex items-center gap-1.5">
+                      <span className="w-1.5 h-1.5 rounded-full bg-rose-400" />
+                      {item.rule}
+                    </p>
+                    <p className="text-[11px] text-muted-foreground leading-relaxed pl-3">{item.context}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        );
+      case "quiz":
+        const quiz = extended.quiz;
+        const allAnswered = Object.keys(quizAnswers).length >= quiz.questions.length;
+
+        const handleGradeCulturalQuiz = () => {
+          setQuizSubmitted(true);
+          let correct = 0;
+          quiz.questions.forEach(q => {
+            if (quizAnswers[q.id] === q.correctIndex) correct++;
+          });
+
+          if (correct >= 4 && !badgeUnlocked) {
+            onXPGain?.(quiz.xpReward, `culture_quiz_${langCode}`);
+            setBadgeUnlocked(true);
+            confetti({ particleCount: 70, spread: 60, origin: { y: 0.7 } });
+            toast.success(`Badge Unlocked: ${quiz.badgeTitle}! +${quiz.xpReward} Culture XP!`);
+          } else {
+            toast.info(`You scored ${correct} of ${quiz.questions.length} correct.`);
+          }
+        };
+
+        return (
+          <div className="space-y-6">
+            <div className="glass-card-elevated p-4 rounded-2xl border border-primary/20 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <span className="text-2xl">{quiz.badgeIcon}</span>
+                <div>
+                  <h4 className="text-sm font-heading font-bold text-foreground">
+                    Regional Mastery Assessment
+                  </h4>
+                  <p className="text-xs text-muted-foreground">
+                    Score 80%+ to unlock the "{quiz.badgeTitle}" badge and earn +{quiz.xpReward} XP
+                  </p>
+                </div>
+              </div>
+              {badgeUnlocked && (
+                <span className="text-xs font-bold px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex items-center gap-1">
+                  <CheckCircle2 className="w-3.5 h-3.5" /> Badge Earned
+                </span>
+              )}
+            </div>
+
+            <div className="space-y-4">
+              {quiz.questions.map((q, idx) => {
+                const selected = quizAnswers[q.id];
+                const isCorrect = selected === q.correctIndex;
+
+                return (
+                  <div key={q.id} className="p-4 rounded-2xl glass-card border border-white/[0.06] space-y-3">
+                    <p className="text-sm font-semibold text-foreground">
+                      <span className="text-primary font-bold mr-1.5">{idx + 1}.</span>
+                      {q.question}
+                    </p>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                      {q.options.map((opt, optIdx) => {
+                        const isOptionSelected = selected === optIdx;
+                        let btnClass = "bg-secondary/30 border-white/[0.06] text-muted-foreground hover:text-foreground";
+
+                        if (quizSubmitted) {
+                          if (optIdx === q.correctIndex) {
+                            btnClass = "bg-emerald-500/20 border-emerald-500 text-emerald-300 font-semibold";
+                          } else if (isOptionSelected && !isCorrect) {
+                            btnClass = "bg-rose-500/20 border-rose-500 text-rose-300";
+                          }
+                        } else if (isOptionSelected) {
+                          btnClass = "bg-primary text-primary-foreground border-primary font-semibold shadow-sm";
+                        }
+
+                        return (
+                          <button
+                            key={optIdx}
+                            onClick={() => {
+                              if (!quizSubmitted) {
+                                setQuizAnswers(prev => ({ ...prev, [q.id]: optIdx }));
+                              }
+                            }}
+                            className={`p-3 rounded-xl border text-xs text-left transition-all ${btnClass}`}
+                          >
+                            {opt}
+                          </button>
+                        );
+                      })}
+                    </div>
+
+                    {quizSubmitted && (
+                      <p className={`text-xs p-2.5 rounded-xl border ${
+                        isCorrect ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20" : "bg-rose-500/10 text-rose-300 border-rose-500/20"
+                      }`}>
+                        <span className="font-bold">{isCorrect ? "Correct: " : "Explanation: "}</span>
+                        {q.explanation}
+                      </p>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+
+            <div className="flex justify-end pt-2">
+              {!quizSubmitted ? (
+                <Button
+                  onClick={handleGradeCulturalQuiz}
+                  disabled={!allAnswered}
+                  className="bg-primary text-primary-foreground hover:bg-primary/90 font-semibold rounded-xl px-6"
+                >
+                  Submit Culture Quiz
+                </Button>
+              ) : (
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setQuizAnswers({});
+                    setQuizSubmitted(false);
+                  }}
+                  className="rounded-xl text-xs"
+                >
+                  Retake Quiz
+                </Button>
+              )}
+            </div>
+          </div>
+        );
       default:
         return null;
     }
