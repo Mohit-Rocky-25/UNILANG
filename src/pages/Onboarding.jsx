@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
+import { Zap } from "lucide-react";
 import WelcomeScreen from "@/components/onboarding/WelcomeScreen";
 import NativeLanguageScreen from "@/components/onboarding/NativeLanguageScreen";
 import TargetLanguagesScreen from "@/components/onboarding/TargetLanguagesScreen";
@@ -60,8 +61,35 @@ export default function Onboarding() {
     navigate("/home");
   };
 
+  const handleQuickDemo = () => {
+    const demoProfile = {
+      name: "Alex Morgan",
+      email: "demo@unilang.app",
+      native_language: "en",
+      target_languages: ["es", "ja", "fr", "te", "hi"],
+      interests: ["culture", "travel", "food", "business"],
+      level: "intermediate",
+      xp_points: 450,
+      streak_count: 7,
+      onboarding_complete: true,
+      isDemoUser: true
+    };
+    localStorage.setItem("unilang_profile", JSON.stringify(demoProfile));
+    localStorage.removeItem("unilang_temp_user");
+    navigate("/home");
+  };
+
   return (
-    <div className="min-h-screen bg-background overflow-hidden">
+    <div className="min-h-screen bg-background overflow-hidden relative">
+      <div className="absolute top-4 right-4 z-50">
+        <button
+          onClick={handleQuickDemo}
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/10 hover:bg-white/20 text-white text-xs font-semibold backdrop-blur-md border border-white/15 shadow-lg transition-all hover:scale-105"
+        >
+          <Zap className="w-3.5 h-3.5 text-amber-400" />
+          <span>Quick Demo Access</span>
+        </button>
+      </div>
       <AnimatePresence mode="wait">
         {step === 0 && <WelcomeScreen key="welcome" onNext={() => setStep(1)} />}
         {step === 1 && (

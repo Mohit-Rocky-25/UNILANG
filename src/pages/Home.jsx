@@ -17,15 +17,28 @@ export default function Home() {
   const [progress, setProgress] = useState([]);
 
   useEffect(() => {
-    const stored = localStorage.getItem("unilang_profile");
+    let stored = localStorage.getItem("unilang_profile");
     const tempUser = localStorage.getItem("unilang_temp_user");
     if (!stored) {
-      if (!tempUser) {
-        navigate("/");
+      if (tempUser) {
+        navigate("/onboarding");
         return;
       }
-      navigate("/onboarding");
-      return;
+      // Auto-initialize demo profile so user never gets blocked by login procedures
+      const demoProfile = {
+        name: "Alex Morgan",
+        email: "demo@unilang.app",
+        native_language: "en",
+        target_languages: ["es", "ja", "fr", "te", "hi"],
+        interests: ["culture", "travel", "food", "business"],
+        level: "intermediate",
+        xp_points: 450,
+        streak_count: 7,
+        onboarding_complete: true,
+        isDemoUser: true
+      };
+      localStorage.setItem("unilang_profile", JSON.stringify(demoProfile));
+      stored = JSON.stringify(demoProfile);
     }
     setProfile(JSON.parse(stored));
   }, [navigate]);
@@ -59,7 +72,7 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-background">
-      <TopBar xp={profile.xp_points || 0} streak={profile.streak_count || 0} />
+      <TopBar xp={profile.xp_points || 0} streak={profile.streak_count || 0} userProfile={profile} />
       <TabBar active={activeTab} onChange={setActiveTab} />
 
       <div className="max-w-4xl mx-auto">
