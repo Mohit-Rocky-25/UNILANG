@@ -2,6 +2,7 @@ const db = globalThis.__B44_DB__ || { auth:{ isAuthenticated: async()=>false, me
 
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import api from "@/api/client";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -30,7 +31,7 @@ export default function Login() {
     }
   }, [navigate]);
 
-  const handleInstantDemoLogin = () => {
+  const handleInstantDemoLogin = async () => {
     const demoProfile = {
       name: "Alex Morgan",
       email: "demo@unilang.app",
@@ -44,6 +45,9 @@ export default function Login() {
       isDemoUser: true
     };
     localStorage.setItem("unilang_profile", JSON.stringify(demoProfile));
+    
+    // Authenticate with live backend server in background
+    api.demoLogin().catch(() => {});
     navigate("/home", { replace: true });
   };
 

@@ -11,7 +11,13 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
+# SQLite Databases
+*.db
+*.db-journal
+
+# Packages
 node_modules
+server/node_modules
 dist
 dist-ssr
 *.local

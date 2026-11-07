@@ -1,0 +1,363 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id            String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  email         String    @unique @db.VarChar(255)
+  passwordHash  String    @map("password_hash") @db.VarChar(255)
+  displayName   String    @map("display_name") @db.VarChar(100)
+  avatarUrl     String?   @map("avatar_url") @db.VarChar(500)
+  createdAt     DateTime  @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt     DateTime  @updatedAt @map("updated_at") @db.Timestamptz
+
+  preference           UserPreference?
+  progress             UserProgress[]
+  savedVocabulary      SavedVocabulary[]
+  translationHistory   TranslationHistory[]
+  conversationSessions ConversationSession[]
+  userStats            UserStats?
+  studyLogs            StudyLog[]
+  userQuests           UserQuest[]
+  userBadges           UserBadge[]
+  leagueMemberships    LeagueMembership[]
+  libraryTags          LibraryTag[]
+
+  @@map("users")
+}
+
+model UserPreference {
+  id              String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId          String   @unique @map("user_id") @db.Uuid
+  interfaceLang   String   @default("en") @map("interface_lang") @db.VarChar(10)
+  targetLang      String   @default("es") @map("target_lang") @db.VarChar(10)
+  cefrLevel       String   @default("A1") @map("cefr_level") @db.VarChar(5)
+  dailyGoalXp     Int      @default(50) @map("daily_goal_xp")
+  soundEnabled    Boolean  @default(true) @map("sound_enabled")
+  rtlMode         Boolean  @default(false) @map("rtl_mode")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_preferences")
+}
+
+model Language {
+  id              String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  code            String   @unique @db.VarChar(10)
+  name            String   @db.VarChar(100)
+  nativeName      String   @map("native_name") @db.VarChar(100)
+  scriptDirection String   @default("ltr") @map("script_direction") @db.VarChar(5)
+  flagEmoji       String   @map("flag_emoji") @db.VarChar(10)
+  isActive        Boolean  @default(true) @map("is_active")
+
+  learningPaths        LearningPath[]
+  cultureArticles      CultureArticle[]
+  vocabularyItems      VocabularyItem[]
+  phrasebookEntries    PhrasebookEntry[]
+  conversationSessions ConversationSession[]
+
+  @@map("languages")
+}
+
+model LearningPath {
+  id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  languageId    String   @map("language_id") @db.Uuid
+  cefrLevel     String   @map("cefr_level") @db.VarChar(5)
+  title         String   @db.VarChar(200)
+  description   String?  @db.Text
+  sequenceOrder Int      @map("sequence_order")
+
+  language Language @relation(fields: [languageId], references: [id], onDelete: Cascade)
+  lessons  Lesson[]
+
+  @@map("learning_paths")
+}
+
+model Lesson {
+  id             String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  learningPathId String   @map("learning_path_id") @db.Uuid
+  title          String   @db.VarChar(200)
+  slug           String   @unique @db.VarChar(200)
+  summary        String?  @db.Text
+  xpReward       Int      @default(20) @map("xp_reward")
+  sequenceOrder  Int      @map("sequence_order")
+
+  learningPath LearningPath   @relation(fields: [learningPathId], references: [id], onDelete: Cascade)
+  exercises    Exercise[]
+  userProgress UserProgress[]
+
+  @@map("lessons")
+}
+
+model Exercise {
+  id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  lessonId      String   @map("lesson_id") @db.Uuid
+  type          String   @db.VarChar(50)
+  prompt        String   @db.Text
+  audioUrl      String?  @map("audio_url") @db.VarChar(500)
+  answerData    Json     @map("answer_data")
+  sequenceOrder Int      @map("sequence_order")
+
+  lesson Lesson @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+
+  @@map("exercises")
+}
+
+model UserProgress {
+  id            String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId        String    @map("user_id") @db.Uuid
+  lessonId      String    @map("lesson_id") @db.Uuid
+  status        String    @default("in_progress") @db.VarChar(20)
+  bestScore     Int       @default(0) @map("best_score")
+  attemptsCount Int       @default(1) @map("attempts_count")
+  completedAt   DateTime? @map("completed_at") @db.Timestamptz
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lesson Lesson @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, lessonId])
+  @@map("user_progress")
+}
+
+model VocabularyItem {
+  id              String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  languageId      String   @map("language_id") @db.Uuid
+  term            String   @db.VarChar(200)
+  lemma           String?  @db.VarChar(200)
+  meaning         String   @db.Text
+  phonetic        String?  @db.VarChar(200)
+  partOfSpeech    String?  @map("part_of_speech") @db.VarChar(50)
+  exampleSentence String?  @map("example_sentence") @db.Text
+  audioUrl        String?  @map("audio_url") @db.VarChar(500)
+
+  language        Language          @relation(fields: [languageId], references: [id], onDelete: Cascade)
+  savedVocabulary SavedVocabulary[]
+
+  @@index([languageId, term])
+  @@map("vocabulary_items")
+}
+
+model SavedVocabulary {
+  id              String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId          String   @map("user_id") @db.Uuid
+  vocabularyId    String   @map("vocabulary_id") @db.Uuid
+  repetitionCount Int      @default(0) @map("repetition_count")
+  intervalDays    Int      @default(1) @map("interval_days")
+  easeFactor      Float    @default(2.5) @map("ease_factor")
+  dueDate         DateTime @default(now()) @map("due_date") @db.Timestamptz
+  retentionScore  Int      @default(100) @map("retention_score")
+  userNotes       String?  @map("user_notes") @db.Text
+  tags            String?  @db.VarChar(500)
+  deck            String   @default("Default") @db.VarChar(100)
+
+  user       User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  vocabulary VocabularyItem @relation(fields: [vocabularyId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, vocabularyId])
+  @@index([userId, dueDate])
+  @@map("saved_vocabulary")
+}
+
+model TranslationHistory {
+  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId       String   @map("user_id") @db.Uuid
+  sourceLang   String   @map("source_lang") @db.VarChar(10)
+  targetLang   String   @map("target_lang") @db.VarChar(10)
+  sourceText   String   @map("source_text") @db.Text
+  targetText   String   @map("target_text") @db.Text
+  formality    String   @default("neutral") @db.VarChar(20)
+  isBookmarked Boolean  @default(false) @map("is_bookmarked")
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@map("translation_history")
+}
+
+model CultureArticle {
+  id              String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  languageId      String   @map("language_id") @db.Uuid
+  region          String   @db.VarChar(100)
+  title           String   @db.VarChar(255)
+  slug            String   @unique @db.VarChar(255)
+  summary         String   @db.Text
+  fullContent     Json     @map("full_content")
+  coverImage      String   @map("cover_image") @db.VarChar(500)
+  verifiedSources Json     @map("verified_sources")
+
+  language Language @relation(fields: [languageId], references: [id], onDelete: Cascade)
+
+  @@map("culture_articles")
+}
+
+model ConversationSession {
+  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId       String   @map("user_id") @db.Uuid
+  languageId   String   @map("language_id") @db.Uuid
+  scenarioKey  String   @map("scenario_key") @db.VarChar(100)
+  cefrLevel    String   @map("cefr_level") @db.VarChar(5)
+  totalTurns   Int      @default(0) @map("total_turns")
+  fluencyScore Int      @default(0) @map("fluency_score")
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  user     User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  language Language              @relation(fields: [languageId], references: [id], onDelete: Cascade)
+  messages ConversationMessage[]
+
+  @@map("conversation_sessions")
+}
+
+model ConversationMessage {
+  id              String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  sessionId       String   @map("session_id") @db.Uuid
+  senderRole      String   @map("sender_role") @db.VarChar(20)
+  messageText     String   @map("message_text") @db.Text
+  phoneticText    String?  @map("phonetic_text") @db.Text
+  grammarFeedback Json?    @map("grammar_feedback")
+  audioUrl        String?  @map("audio_url") @db.VarChar(500)
+  createdAt       DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  session ConversationSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@map("conversation_messages")
+}
+
+model PhrasebookEntry {
+  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  languageId   String   @map("language_id") @db.Uuid
+  categorySlug String   @map("category_slug") @db.VarChar(50)
+  sourceText   String   @map("source_text") @db.Text
+  targetText   String   @map("target_text") @db.Text
+  phonetic     String?  @db.VarChar(255)
+  audioUrl     String?  @map("audio_url") @db.VarChar(500)
+  isEmergency  Boolean  @default(false) @map("is_emergency")
+
+  language Language @relation(fields: [languageId], references: [id], onDelete: Cascade)
+
+  @@index([languageId, categorySlug])
+  @@index([languageId, isEmergency])
+  @@map("phrasebook_entries")
+}
+
+model UserStats {
+  id               String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId           String   @unique @map("user_id") @db.Uuid
+  totalXp          Int      @default(0) @map("total_xp")
+  currentStreak    Int      @default(0) @map("current_streak")
+  highestStreak    Int      @default(0) @map("highest_streak")
+  streakFreezes    Int      @default(1) @map("streak_freezes")
+  vocabScore       Int      @default(10) @map("vocab_score")
+  grammarScore     Int      @default(10) @map("grammar_score")
+  listeningScore   Int      @default(10) @map("listening_score")
+  speakingScore    Int      @default(10) @map("speaking_score")
+  cultureScore     Int      @default(10) @map("culture_score")
+  lastActivityDate DateTime @default(now()) @map("last_activity_date") @db.Timestamptz
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_stats")
+}
+
+model StudyLog {
+  id             String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId         String   @map("user_id") @db.Uuid
+  studyDate      DateTime @default(now()) @map("study_date") @db.Timestamptz
+  minutesSpent   Int      @default(0) @map("minutes_spent")
+  xpEarned       Int      @default(0) @map("xp_earned")
+  lessonsCount   Int      @default(0) @map("lessons_count")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, studyDate])
+  @@map("study_logs")
+}
+
+model Quest {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  title       String   @db.VarChar(200)
+  description String   @db.Text
+  targetCount Int      @map("target_count")
+  rewardXp    Int      @map("reward_xp")
+  questType   String   @map("quest_type") @db.VarChar(20)
+  category    String   @db.VarChar(50)
+
+  userQuests  UserQuest[]
+
+  @@map("quests")
+}
+
+model UserQuest {
+  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId       String   @map("user_id") @db.Uuid
+  questId      String   @map("quest_id") @db.Uuid
+  currentCount Int      @default(0) @map("current_count")
+  isCompleted  Boolean  @default(false) @map("is_completed")
+  assignedDate DateTime @default(now()) @map("assigned_date") @db.Timestamptz
+
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  quest Quest @relation(fields: [questId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, questId, assignedDate])
+  @@map("user_quests")
+}
+
+model Badge {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  code        String   @unique @db.VarChar(50)
+  name        String   @db.VarChar(100)
+  description String   @db.Text
+  icon        String   @db.VarChar(50)
+  tier        String   @default("bronze") @db.VarChar(20)
+
+  userBadges  UserBadge[]
+
+  @@map("badges")
+}
+
+model UserBadge {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId     String   @map("user_id") @db.Uuid
+  badgeId    String   @map("badge_id") @db.Uuid
+  unlockedAt DateTime @default(now()) @map("unlocked_at") @db.Timestamptz
+
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  badge Badge @relation(fields: [badgeId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, badgeId])
+  @@map("user_badges")
+}
+
+model LeagueMembership {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId      String   @map("user_id") @db.Uuid
+  leagueTier  String   @default("Bronze") @map("league_tier") @db.VarChar(20)
+  weekNumber  Int      @map("week_number")
+  weeklyXp    Int      @default(0) @map("weekly_xp")
+  rank        Int      @default(1)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, weekNumber])
+  @@index([leagueTier, weeklyXp])
+  @@map("league_memberships")
+}
+
+model LibraryTag {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  tagName   String   @map("tag_name") @db.VarChar(100)
+  itemType  String   @map("item_type") @db.VarChar(50)
+  itemId    String   @map("item_id") @db.VarChar(100)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, tagName, itemType, itemId])
+  @@map("library_tags")
+}

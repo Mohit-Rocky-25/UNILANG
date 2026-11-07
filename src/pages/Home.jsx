@@ -3,6 +3,7 @@ const db = globalThis.__B44_DB__ || { auth:{ isAuthenticated: async()=>false, me
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
+import api from "@/api/client";
 import TopBar from "@/components/layout/TopBar";
 import TabBar from "@/components/layout/TabBar";
 import LearnSection from "@/components/learn/LearnSection";
@@ -18,9 +19,10 @@ export default function Home() {
 
   useEffect(() => {
     let stored = localStorage.getItem("unilang_profile");
-    if (!stored) {
-      // Auto-initialize demo profile so user is never redirected away or blocked
-      const demoProfile = {
+    let currentProfile = stored ? JSON.parse(stored) : null;
+
+    if (!currentProfile) {
+      currentProfile = {
         name: "Alex Morgan",
         email: "demo@unilang.app",
         native_language: "en",
@@ -32,10 +34,43 @@ export default function Home() {
         onboarding_complete: true,
         isDemoUser: true
       };
-      localStorage.setItem("unilang_profile", JSON.stringify(demoProfile));
-      stored = JSON.stringify(demoProfile);
+      localStorage.setItem("unilang_profile", JSON.stringify(currentProfile));
     }
-    setProfile(JSON.parse(stored));
+    setProfile(currentProfile);
+
+    // Sync with live backend API
+    async function syncWithBackend() {
+      try {
+        const meData = await api.getMe();
+        if (meData?.user) {
+          const u = meData.user;
+          const merged = {
+            ...currentProfile,
+            name: u.displayName || currentProfile.name,
+            email: u.email,
+            xp_points: u.stats?.totalXp ?? currentProfile.xp_points,
+            streak_count: u.stats?.currentStreak ?? currentProfile.streak_count,
+            target_languages: u.preference?.targetLang ? [u.preference.targetLang] : currentProfile.target_languages,
+            level: u.preference?.cefrLevel || currentProfile.level
+          };
+          setProfile(merged);
+          localStorage.setItem("unilang_profile", JSON.stringify(merged));
+        }
+
+        const progressData = await api.getProgress();
+        if (progressData?.progress) {
+          setProgress(progressData.progress.map(p => ({
+            lesson_id: p.lessonId,
+            status: p.status,
+            score: p.bestScore
+          })));
+        }
+      } catch (err) {
+        // Server unreachable or offline — keep local profile
+        console.debug("Backend sync skipped, operating in offline/local mode.");
+      }
+    }
+    syncWithBackend();
   }, [navigate]);
 
   const handleXPGain = (xp, lessonId) => {
@@ -50,6 +85,11 @@ export default function Home() {
         return prev.map(p => p.lesson_id === lessonId ? { ...p, status: "completed", score: 100 } : p);
       }
       return [...prev, { lesson_id: lessonId, status: "completed", score: 100 }];
+    });
+
+    // Record to live backend if available
+    api.recordProgress(lessonId, 100, xp).catch(() => {
+      // Handled by offline queue in ApiClient
     });
   };
 
